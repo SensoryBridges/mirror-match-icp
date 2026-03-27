@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<!-- saved from url=(0069)file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#exec -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorMatch — ICP Deep Dive &amp; Value Proposition Analysis</title>
+<link href="./index_files/css2" rel="stylesheet">
+<style>
+:root{--bg:#08090d;--surface:#11121a;--surface2:#191a26;--border:#252638;--text:#e6e6f2;--muted:#7e7e9a;--accent:#6c5ce7;--green:#55efc4;--pink:#fd79a8;--gold:#fdcb6e;--blue:#74b9ff;--red:#ff6464;--teal:#00cec9}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.conf{background:linear-gradient(135deg,rgba(255,100,100,.08),rgba(108,92,231,.08));border:1px solid rgba(255,100,100,.25);border-radius:10px;padding:14px;max-width:1000px;margin:24px auto;text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:2px}
+.hero{text-align:center;padding:64px 24px 48px;max-width:800px;margin:0 auto}
+.hero-badge{display:inline-block;background:var(--surface2);border:1px solid var(--border);padding:5px 14px;border-radius:100px;font-family:'Space Mono',monospace;font-size:10px;color:var(--teal);text-transform:uppercase;letter-spacing:2px;margin-bottom:20px}
+.hero h1{font-size:clamp(28px,5vw,52px);font-weight:900;letter-spacing:-2px;line-height:1.1}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{color:var(--muted);font-size:16px;margin-top:12px}
+.hero-meta{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:24px;font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px}
+.nav{position:sticky;top:0;z-index:100;background:rgba(8,9,13,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:10px 20px;overflow-x:auto;white-space:nowrap}
+.nav::-webkit-scrollbar{height:0}
+.nav a{display:inline-block;color:var(--muted);text-decoration:none;font-size:11px;font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;padding:5px 12px;border-radius:6px;transition:.2s}
+.nav a:hover{color:var(--teal);background:var(--surface2)}
+.wrap{max-width:1000px;margin:0 auto;padding:0 24px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);max-width:1000px;margin:0 auto}
+
+/* ICP SECTIONS */
+.icp{padding:56px 0 32px}
+.icp-header{display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.icp-num{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:3px}
+.icp h2{font-size:28px;font-weight:800;letter-spacing:-1px}
+.icp-persona{color:var(--muted);font-size:14px;margin-bottom:28px;max-width:700px}
+
+/* GRID */
+.grid{display:grid;gap:16px;margin-bottom:24px}
+.grid-2{grid-template-columns:1fr}
+@media(min-width:640px){.grid-2{grid-template-columns:1fr 1fr}}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;transition:.25s}
+.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card-label{font-family:'Space Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:2px 8px;border-radius:3px;display:inline-block;margin-bottom:10px}
+.l-pain{background:rgba(253,121,168,.12);color:var(--pink)}
+.l-where{background:rgba(116,185,255,.12);color:var(--blue)}
+.l-value{background:rgba(85,239,196,.12);color:var(--green)}
+.l-pay{background:rgba(253,203,110,.12);color:var(--gold)}
+.l-trade{background:rgba(108,92,231,.12);color:var(--accent)}
+.l-feature{background:rgba(0,206,201,.12);color:var(--teal)}
+.card h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.card p{color:var(--muted);font-size:13px;line-height:1.65}
+.card ul{color:var(--muted);font-size:13px;line-height:1.7;padding-left:18px;margin-top:6px}
+.card li{margin-bottom:4px}
+
+/* HIGHLIGHT BOX */
+.highlight{background:linear-gradient(135deg,rgba(108,92,231,.06),rgba(0,206,201,.06));border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:20px 24px;margin:24px 0}
+.highlight h4{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--teal)}
+.highlight p{font-size:13px;color:var(--muted);line-height:1.65}
+
+/* STATS */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin:24px 0}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-n{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--accent),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat-l{font-size:10px;font-family:'Space Mono',monospace;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.footer{text-align:center;padding:48px 24px;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;border-top:1px solid var(--border);max-width:1000px;margin:64px auto 0}
+</style>
+</head>
+<body>
+
+<div class="conf">⬤ CONFIDENTIAL — SENSORY BRIDGES, INC. — STRATEGIC ANALYSIS ⬤</div>
+
+<div class="hero">
+  <div class="hero-badge">◆ Forbes-Level Strategic Analysis</div>
+  <h1>Mirror<em>Match</em> ICP Deep Dive</h1>
+  <p class="hero-sub">Ideal Customer Profiles · Pain Point Mapping · Value Propositions · Why They'll Pay · The Trade-Off</p>
+  <div class="hero-meta">
+    <span>March 27, 2026</span>
+    <span>Sensory Bridges, Inc.</span>
+    <span>12 ICP Segments</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp1">Parents/Neurodivergent</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp2">Foster/Adoption</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp3">Reentry</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp4">Students</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp5">Employers</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp6">Therapists</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp7">Legal/Custody</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp8">Weight Loss</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp9">Sports Teams</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp10">Grief/Legacy</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp11">Volunteers</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#icp12">Enterprise</a>
+  <a href="file:///C:/Users/qxb843/Downloads/mirrormatch-icp-deep-dive.html#exec">Exec Summary</a>
+</nav>
+
+<div class="stat-row wrap">
+  <div class="stat"><div class="stat-n">$4.2T</div><div class="stat-l">Total TAM</div></div>
+  <div class="stat"><div class="stat-n">12</div><div class="stat-l">ICP Segments</div></div>
+  <div class="stat"><div class="stat-n">40+</div><div class="stat-l">Pain Sources Mapped</div></div>
+  <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Zero-Storage Privacy</div></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- ICP 1: PARENTS OF NEURODIVERGENT CHILDREN -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp1">
+  <div class="icp-num">ICP 01</div>
+  <h2>Parents of Neurodivergent / Nonverbal Children</h2>
+  <p class="icp-persona">Age 28-50 · Household income $45K-$120K · Predominantly mothers · Active in Facebook support groups, Reddit r/autism, r/specialneeds · Spending $200-$600/mo on therapies not covered by insurance · Desperate for tools that let their child be heard</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <h3>What They're Screaming About</h3>
+      <ul>
+        <li>"My child has a rich inner world but no way to show it." 25-30% of children with autism are nonverbal — parents report extreme frustration that their child's intelligence is invisible to the world</li>
+        <li>Existing AAC tools (Proloquo2Go, PECS boards) are static, expensive ($300+), and don't capture emotional states or context — just basic needs</li>
+        <li>Behavioral outbursts driven by communication failure — children act out because they can't express frustration, hunger, pain, or love</li>
+        <li>Schools and therapists cycle through tools without integration — every provider uses different systems with no continuity</li>
+        <li>Parents report burning out from being the constant translator between their child and the world</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-where">Where They're Venting</span>
+      <h3>Communities &amp; Platforms</h3>
+      <ul>
+        <li><strong>Reddit:</strong> r/autism (500K+), r/Autism_Parenting, r/specialneeds</li>
+        <li><strong>Facebook:</strong> Nonverbal Autism Support (50K+), Autism Moms (100K+), AAC Users Unite</li>
+        <li><strong>TikTok:</strong> #autismmom (12B+ views), #nonverbalautism, #AAC</li>
+        <li><strong>Forums:</strong> Autism Speaks community boards, ASAN forums, WrongPlanet</li>
+        <li><strong>In-person:</strong> IEP meetings, parent support groups, ABA therapy waiting rooms</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>MirrorMatch Value Proposition</h4>
+    <p>"Your child finally has a voice — and a world where they're understood without speaking a single word." The avatar learns your child's biological responses, behavioral patterns, and preferences through the Brooks Band. It translates biometric signals into emotional expression. The nonverbal child's avatar communicates emotional needs in real time — not through static picture cards, but through a living digital self that friends and teachers can experience. Parents can invite someone to "wear their child's skin" and understand what overwhelm actually feels like from the inside.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <h3>The Money Logic</h3>
+      <p>Parents already spend $200-$600/mo on therapies, devices, and tools. They have switched between 3-5 communication systems by age 8. They will pay for the ONE platform that actually lets their child be seen as a whole person — not just a collection of deficits on an IEP. The emotional ROI is immeasurable: the first time their child's avatar expresses love back to them. Price point: $29-$49/mo consumer, $199/mo institutional (schools/therapy centers).</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <h3>What They Give Up vs. Get</h3>
+      <p><strong>Give up:</strong> Time to onboard the wearable and build the avatar's baseline (2-4 weeks). Trust in a new system after cycling through failures. Willingness to let AI interpret their child's state.<br><strong>Get:</strong> A child who can finally show the world who they really are. Reduced behavioral outbursts. Teachers and peers who actually understand. A communication bridge that grows with their child instead of being outgrown.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 2: FOSTER CARE / ADOPTION -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp2">
+  <div class="icp-num">ICP 02</div>
+  <h2>Foster Care System — Agencies, Parents &amp; Youth</h2>
+  <p class="icp-persona">400,000+ children in US foster care · 50% of foster parents quit after year one · Caseworkers carry 24-31 cases (ideal is 12-18) · Youth in 5+ placements common · Active on Reddit r/fosterparents (40K+), r/Ex_Foster, Facebook foster support groups</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <h3>What's Broken</h3>
+      <ul>
+        <li>Matching is based on bed availability, not compatibility — children get placed wherever there's space, not where they'll thrive</li>
+        <li>76% of removals are for "neglect" often linked to poverty, not abuse — families are separated who could have been supported</li>
+        <li>40% of foster youth report abuse IN foster homes. Caseworkers are overwhelmed and can't catch it</li>
+        <li>Foster parents burn out from receiving zero behavioral insight about the child before placement — they're flying blind</li>
+        <li>Youth aging out at 18 have 81% incarceration rate, 25% attempt suicide. The system produces broken adults</li>
+        <li>Reunification data is gut-feel, not science — judges make decisions without understanding the child-parent dynamic objectively</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-where">Where They're Venting</span>
+      <h3>Communities &amp; Platforms</h3>
+      <ul>
+        <li><strong>Reddit:</strong> r/fosterparents, r/Ex_Foster, r/Fostercare, r/AdoptiveParents</li>
+        <li><strong>Facebook:</strong> Foster Care Support Groups (dozens with 10K-50K members each)</li>
+        <li><strong>Organizations:</strong> CAFO, Foster Love, Focus on the Family, Impact Justice</li>
+        <li><strong>Policy forums:</strong> The Imprint (foster care journalism), Youth Voices Rising</li>
+        <li><strong>Conferences:</strong> CWA, NAPCWA, state-level child welfare conferences</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>MirrorMatch Value Proposition</h4>
+    <p>"Match foster children with families based on who they actually are — not which bed is empty." Bilateral biofeedback compatibility scoring goes beyond paperwork. The child's avatar and prospective family's avatars interact in simulations. Over weeks, the system builds behavioral pattern data showing how the child's profile responds to different family dynamics. Caseworkers get data-driven matching instead of gut calls. Foster parents get behavioral insight before placement — reducing shock, failure, and the revolving door that traumatizes children.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <h3>The Money Logic</h3>
+      <p>Failed placements cost the system $30,000-$50,000 each in administrative, legal, and care costs. Reducing placement failure by even 15% saves states millions annually. Foster agencies will pay $500-$2,000/mo per office for matching intelligence. State contracts are $50K-$500K/yr. Individual foster parents pay $0 — the system pays because it saves money. The child welfare market is a $33B+ annual government expenditure.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <h3>What They Give Up vs. Get</h3>
+      <p><strong>Give up:</strong> The speed of emergency placement (matching takes 1-4 weeks of avatar data collection). Agency adoption of new technology in a traditionally tech-resistant field. Privacy concerns around children's behavioral data (solved by zero-storage architecture).<br><strong>Get:</strong> Children placed with families where they actually fit. Reduced failed placements. Data for judges to make informed custody decisions. Youth who don't age out broken.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 3: REENTRY -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp3">
+  <div class="icp-num">ICP 03</div>
+  <h2>Formerly Incarcerated Individuals — Reentry</h2>
+  <p class="icp-persona">600,000+ released annually in US · 2/3 rearrested within 3 years · 10x more likely to be homeless · Only 40% maintain employment in any quarter post-release · Active on Reddit r/ExCons, r/reentry, Facebook reentry groups</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <h3>What They're Screaming About</h3>
+      <ul>
+        <li>"When you're in prison, you don't make choices. When you get out, you have to make decisions. But many don't trust themselves." People leave with zero decision-making confidence</li>
+        <li>Criminal record = automatic housing rejection. Landlords and public housing use background checks as blanket disqualifiers</li>
+        <li>Employment: only 40% hold a job in any quarter for 4 years post-release. Employers won't take the risk</li>
+        <li>No verifiable reputation — their past defines them. No mechanism to prove they've changed</li>
+        <li>Family relationships fractured. Reintegrating with children and partners who experienced trauma during incarceration</li>
+        <li>Identity crisis: "Who am I outside of prison?" after years of having every decision made for them</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-where">Where They're Venting</span>
+      <h3>Communities &amp; Platforms</h3>
+      <ul>
+        <li><strong>Reddit:</strong> r/ExCons, r/reentry, r/prisonreform</li>
+        <li><strong>Facebook:</strong> Reentry support groups, Second Chance employment groups</li>
+        <li><strong>Organizations:</strong> GEO Reentry Connect, Impact Justice Homecoming Project, Safer Foundation, Osborne Association</li>
+        <li><strong>Policy:</strong> CSG Justice Center Reentry 2030, Prison Policy Initiative</li>
+        <li><strong>In-person:</strong> Transitional housing programs, parole offices, faith-based reentry ministries</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>MirrorMatch Value Proposition</h4>
+    <p>"Build a trustable reputation that proves who you've become — not who you were." The avatar tracks growth over time: decision-making patterns, emotional regulation progress, consistency in behavior. It creates a verifiable, living record that employers and landlords can review — not a static criminal record, but a dynamic proof of transformation. The Living Resume feature shows real skills and character, not just a background check. The bias-free interviewing feature means employers meet the person's avatar first — no bias from appearance, background, or record.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <h3>The Money Logic</h3>
+      <p>Individuals: free or subsidized through reentry organizations ($0-$15/mo). Reentry organizations pay $200-$1,000/mo per program for matching and tracking tools. Government contracts: recidivism costs taxpayers $33,000/yr per incarcerated person. Reducing recidivism by 10% across a state = hundreds of millions saved. DOJ Bureau of Justice Assistance actively funds reentry innovation. Performance-based pricing ("if no positive results, you don't pay") is perfect for this market — agencies are risk-averse.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <h3>What They Give Up vs. Get</h3>
+      <p><strong>Give up:</strong> Transparency — the system requires honesty to build an authentic avatar. Time investment in self-work (diary, reflection, biometric tracking). Vulnerability in a population trained to protect themselves.<br><strong>Get:</strong> A reputation that can't be taken away. Employers who see the real person. Housing applications backed by behavioral data. Family reconnection through avatar-mediated understanding. Identity outside of their record.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 4: STUDENTS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp4">
+  <div class="icp-num">ICP 04</div>
+  <h2>College Students — Career Matching</h2>
+  <p class="icp-persona">Age 18-25 · 72% report job search harms mental health · 59% believe their applications never reach a human · 57% abandon applications mid-process · Average: 32 applications for 4 interviews · Active on Reddit r/jobs, r/college, LinkedIn, TikTok</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <h3>What They're Screaming About</h3>
+      <ul>
+        <li>"I've applied to 3,000 jobs and heard nothing." ATS systems reject 70-80% of resumes before a human sees them</li>
+        <li>The experience paradox: employers want experience, but students need a job to get experience</li>
+        <li>79% experience anxiety during job search. 66% feel burned out by the process</li>
+        <li>Resumes are dead — recruiters spend 7-10 seconds on each. Students are reduced to a keyword-matching game</li>
+        <li>41% of job seekers have NEVER landed an interview through quick-apply tools</li>
+        <li>27% admit to lying on applications out of desperation. The system incentivizes dishonesty</li>
+        <li>"How do I make these people know ME? How do I make my resume stand out?" Students feel invisible</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-where">Where They're Venting</span>
+      <h3>Communities &amp; Platforms</h3>
+      <ul>
+        <li><strong>Reddit:</strong> r/jobs (1.2M+), r/cscareerquestions, r/college, r/careerguidance</li>
+        <li><strong>LinkedIn:</strong> Daily complaints about ghost jobs, ATS rejection, hiring dysfunction</li>
+        <li><strong>TikTok:</strong> #jobsearch (5B+ views), #jobsearchstruggles, #ghostjobs</li>
+        <li><strong>Glassdoor:</strong> Company reviews exposing toxic cultures students can't see from outside</li>
+        <li><strong>University career centers:</strong> Overloaded, understaffed, relying on Handshake which is generic</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <h4>MirrorMatch Value Proposition</h4>
+    <p>"Stop sending resumes into the void. Let your avatar prove who you really are — then let companies compete for you." The Living Resume builds an avatar from real skills (tested through tricky quizzes students can't game), personality, values, and growth trajectory. Companies don't get a resume — they get a compatibility score. The avatar scouts jobs via simulation and tells you if it's a fit BEFORE you waste time applying. The bias-free interview means companies meet your authentic self, not your keyword-optimized PDF. You don't apply. You get matched.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <h3>The Money Logic</h3>
+      <p>Students: freemium ($0 basic, $9.99-$19.99/mo premium for advanced matching and avatar scouting). Universities pay $5,000-$50,000/yr to license the platform as their career center tool — it replaces Handshake with something that actually matches, not just lists. Employers pay tokens to access matched talent — $500-$5,000 per successful placement. UTC pilot proves the model: learn the student → build profile → match to internship → company buys the platform. Built-in B2B conversion.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <h3>What They Give Up vs. Get</h3>
+      <p><strong>Give up:</strong> Control over self-presentation (the system reveals who you really are, not who you pretend to be). Vulnerability — the tricky quiz format means you can't game results. Patience while the avatar builds your profile (1-2 weeks vs. instant applications).<br><strong>Get:</strong> An end to the application void. Companies that actually fit your values. A career path based on who you are, not which keywords you stuffed. Advocacy — the platform advocates on your behalf.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 5: EMPLOYERS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp5">
+  <div class="icp-num">ICP 05</div>
+  <h2>Employers — HR &amp; Talent Acquisition</h2>
+  <p class="icp-persona">SMBs to enterprise · Bad hire costs 30-150% of annual salary · 74% detect AI-generated applications · Drowning in volume, starving for signal · Active on LinkedIn, SHRM forums, HR conferences</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <h3>What They're Screaming About</h3>
+      <ul>
+        <li>AI-generated resumes flooding the system — 74% of hiring managers detect AI content in applications. Volume is up, quality is down</li>
+        <li>A bad hire at $60K salary costs $90K-$180K in recruitment, training, lost productivity, and replacement</li>
+        <li>Culture fit is impossible to assess from a resume. Companies hire skills and fire for personality</li>
+        <li>Unconscious bias in hiring means they're missing diverse talent that would outperform their current hires</li>
+        <li>High turnover in first 12 months — the match was wrong from the start</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"Stop hiring resumes. Start hiring humans."</h3>
+      <p>The assessment engine converts connected app data into compatibility scores. The value calculator shows exactly how much a candidate's specific skills add to the company. Bias-free avatar interviews remove unconscious bias while delivering authentic personality data. Meet the whole person — without a mask — before spending a dollar on onboarding. Performance-based pricing means if the hire doesn't work out, you don't pay.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>Tokens per match: $500-$5,000 depending on role level. Enterprise platform license: $25K-$200K/yr. The ROI math is simple: if a bad hire costs $100K and MirrorMatch prevents even 2 bad hires per year, the platform pays for itself 10x over. Performance-based pricing ("results or no payment") eliminates risk for the buyer.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Traditional resume screening (the system won't let you keyword-filter humans). Control over bias (the system forces fair evaluation). Speed on initial setup (assessment integration takes 2-4 weeks).<br><strong>Get:</strong> Candidates who actually fit the culture. 50%+ reduction in first-year turnover. Diverse talent they'd never find through traditional channels. Quantified value-add per hire.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 6: THERAPISTS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp6">
+  <div class="icp-num">ICP 06</div>
+  <h2>Therapists &amp; Self-Improvement Practitioners</h2>
+  <p class="icp-persona">500K+ licensed therapists in US · Average 25-30 clients per week · Session notes take 15-30 min each · Burnout rate 50%+ · Active on Psychology Today, NASW forums, therapist Facebook groups, r/therapists</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>Clients can't articulate what they're feeling — they show up for 50 minutes and spend 30 minutes trying to describe an emotion they don't have words for</li>
+        <li>No objective data between sessions — the therapist relies on self-report, which is unreliable</li>
+        <li>Administrative burden: session notes, documentation, insurance paperwork consuming 40%+ of working hours</li>
+        <li>Client progress is subjective and hard to measure — "are we actually making progress?"</li>
+        <li>Clients mask in sessions — they present a version of themselves that isn't authentic</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"See your client's whole self — between sessions, without masks."</h3>
+      <p>The avatar captures emotional patterns 24/7 through biometric and behavioral data (via Brooks Band). The truth detection engine shows where clients are self-deceiving. The Neurocycle memory tree provides a structured framework for brain rewiring that therapists can integrate into their practice. Diary and reflective question features generate insight between sessions. The avatar's mask/real-skin mechanic shows the therapist when the client is being authentic vs. performing. HIPAA-compliant. Zero cloud storage.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>$49-$99/mo per practitioner. Group practices: $299-$999/mo. The value: double the effective insight per session (don't waste 30 min on "how are you feeling?"). Reduced no-shows because clients are engaged with their avatar daily. Measurable progress metrics for insurance documentation. Therapists already pay $50-$200/mo for practice management tools — this replaces and outperforms.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Traditional intake processes. Learning curve on avatar-based assessment. Potential over-reliance on tech vs. therapeutic relationship.<br><strong>Get:</strong> Clients who show up pre-processed. Objective data between sessions. Measurable outcomes. Less administrative burden. A practice differentiator that attracts clients.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 7: LEGAL / CUSTODY -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp7">
+  <div class="icp-num">ICP 07</div>
+  <h2>Family Law — Judges, Attorneys, Custody Evaluators</h2>
+  <p class="icp-persona">500K+ custody cases/yr in US · Custody evaluations cost $5K-$30K · Average case takes 12-18 months · Active on legal forums, bar association groups, judicial conferences</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>Judges make life-altering custody decisions based on limited courtroom observation — a few hours of performative behavior</li>
+        <li>Custody evaluations are subjective, expensive ($5K-$30K), and take months</li>
+        <li>Parents coach children before court appearances. The judge sees a performance, not reality</li>
+        <li>New attorneys don't know what to look for — no system trains them on real family dynamics</li>
+        <li>Judges rarely see the long-term impact of their rulings on children</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"See how the child actually responds to each parent — over weeks, not in a courtroom."</h3>
+      <p>Avatar behavioral pattern insights show how a child's profile responds to each parent over weeks of real-world data — not a 2-hour evaluation. The Ripple Effect feature shows attorneys and judges how rulings impact families downstream. All outputs labeled as "behavioral pattern insights for informational purposes only — not a clinical or psychological assessment." New attorneys get a training simulation based on real (anonymized) case patterns.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>Court-appointed evaluators: $500-$2,000/case for data access. Law firms: $1,000-$5,000/mo for custody analytics. Courts: $10K-$100K/yr per jurisdiction. The alternative is a $15K custody evaluation that takes 6 months. MirrorMatch delivers better data, faster, cheaper. Attorneys bill $300-$500/hr — saving even 10 hours per case justifies the cost immediately.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Established legal precedent around evaluation methods (this is new territory). Admissibility challenges in court (initially positioned as supplemental evidence). Privacy scrutiny around children's behavioral data.<br><strong>Get:</strong> Objective, longitudinal data vs. point-in-time snapshots. Better outcomes for children. Faster case resolution. New attorneys trained on actual dynamics, not textbooks.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 8: WEIGHT LOSS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp8">
+  <div class="icp-num">ICP 08</div>
+  <h2>Weight Loss &amp; Wellness Companies</h2>
+  <p class="icp-persona">$224B global weight management market · 95% of dieters regain weight within 5 years · Retention is the #1 business problem · Active on Instagram, TikTok, Reddit r/loseit (4M+), r/progresspics</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>95% failure rate. Weight loss programs work short-term but fail at behavior change. The psychological component is ignored</li>
+        <li>Companies can track pounds lost but can't measure confidence growth, self-image improvement, or emotional relationship with food</li>
+        <li>Churn: clients cancel after 3-6 months because the scale isn't enough motivation</li>
+        <li>No way to connect physical transformation with psychological transformation — they're treated as separate</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"Track the transformation that actually matters — confidence."</h3>
+      <p>Companies connect to MirrorMatch to see how their client's confidence grows alongside physical results. The avatar's garden blooms as internal healing progresses. The Magnet Image shows what users are attracting based on their current vibe — creating motivation beyond the scale. Vitamin and med scanning ensures supplements aren't conflicting. Environmental scanning catches cluttered spaces as indicators of overwhelm.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>Integration API: $1,000-$10,000/mo per company depending on user volume. Token model: free trial month, then purchase tokens to access ongoing data. The retention math: if MirrorMatch integration increases 6-month retention by 20% for a program with 10,000 members at $50/mo, that's $1.2M in saved revenue. The platform pays for itself by reducing churn.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Control of the full user experience (MirrorMatch becomes part of the stack). Integration development time. Sharing credit for outcomes.<br><strong>Get:</strong> A differentiated offering competitors don't have. Retention improvement. The ability to market "whole-person transformation" instead of just weight loss. Clients who stay because the avatar journey is ongoing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 9: SPORTS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp9">
+  <div class="icp-num">ICP 09</div>
+  <h2>Sports Teams &amp; Athletic Programs</h2>
+  <p class="icp-persona">$150B+ global sports industry · Team chemistry is cited as #1 factor in championship teams · High school to pro level · Active on team Slack channels, coaching forums, athletic director conferences</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>Talent alone doesn't win — team chemistry does. No tool measures it</li>
+        <li>Personality conflicts destroy locker rooms. Coaches see the explosion but not the buildup</li>
+        <li>Communication style mismatches between players cause on-field breakdowns</li>
+        <li>Recruits look perfect on tape but don't fit the culture</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"Build champions by building teammates first."</h3>
+      <p>Avatar-based team compatibility scoring. Each player's avatar interacts with teammates' avatars in simulation. Communication coaching teaches players to speak in each teammate's preferred style in real-time. Recruits are avatar-matched for culture fit before scholarship offers. The anger recognition and love bank feature detects tension before it erupts.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>High school programs: $2,000-$10,000/season. College programs: $10K-$50K/yr. Pro teams: $100K-$500K/yr. A single chemistry-related locker room implosion costs a college program millions in lost revenue, damaged recruiting, and coaching turnover. One prevented conflict = ROI on years of subscription.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Players must buy into vulnerability and avatar-building (cultural shift). Coaching staff must trust data alongside intuition.<br><strong>Get:</strong> Measurable team chemistry. Recruits who actually fit. Players who communicate better under pressure. A competitive edge no other program has.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 10: GRIEF / LEGACY -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp10">
+  <div class="icp-num">ICP 10</div>
+  <h2>Grief, Legacy &amp; End-of-Life</h2>
+  <p class="icp-persona">2.5M deaths/yr in US · $20B+ grief/memorial market · 1 in 5 adults grieving a significant loss at any time · Active on Reddit r/GriefSupport (150K+), r/widowers, Facebook memorial groups, GriefShare</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>"I just want to hear their voice one more time." Grief support is talk-based — there's nothing that preserves the person's essence</li>
+        <li>Photos and videos fade. Memories distort. The real person gets lost</li>
+        <li>Children who lose parents young grow up with a void — they can't ask their parent for advice at 25</li>
+        <li>End-of-life planning covers assets, not identity. Nobody plans for preserving who they ARE</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"Your loved one's avatar lives on — forever."</h3>
+      <p>The Legacy Avatar persists after death. Grandchildren can interact with a grandparent they never met. Partners can consult the avatar during difficult decisions. Family trees across generations experience the person — their personality, their wisdom, their way of seeing the world. Not a chatbot. A living digital soul built from years of diary entries, biometric patterns, beliefs, and experiences.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>$9.99-$29.99/mo during life for Legacy Avatar building. One-time memorial activation: $199-$499. Family plan: $49.99/mo for full family tree access. End-of-life planning integration: $1,000-$5,000 bundled with estate services. This is the only product in the market that preserves PERSONALITY, not just assets. People spend $10K+ on funerals — they'll spend $500 to keep the person's essence alive forever.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Years of investment building the avatar while alive (the earlier you start, the richer the legacy). Emotional complexity of interacting with a deceased person's avatar (requires psychological readiness).<br><strong>Get:</strong> A grandchild who knows their grandparent's voice, humor, and wisdom. A partner who can still "ask" their spouse for guidance. A family legacy that transcends death.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 11: VOLUNTEERS -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp11">
+  <div class="icp-num">ICP 11</div>
+  <h2>Volunteers &amp; Community Organizations</h2>
+  <p class="icp-persona">77M+ Americans volunteer annually · $193B in estimated economic value · Average tenure: 52 hours/yr · Active on VolunteerMatch, Meetup, church groups, Nextdoor, Facebook community groups</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>Volunteers sign up but don't stick — organizations spend more time recruiting than retaining</li>
+        <li>Skill mismatch: people want to help but get assigned to tasks that waste their abilities</li>
+        <li>No way to measure impact — volunteers burn out without seeing their ripple effect</li>
+        <li>Connection is surface-level — people want meaningful community but get checkbox participation</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"Plug into the community where your energy matters most — and watch the ripple."</h3>
+      <p>Skills-based volunteer matching through avatar compatibility. The Global Good Map lights up showing the ripple effect of your contributions. The Wishing Well anonymously connects givers with needs. The Service Tag gamifies good deeds. Community matching based on vibe and energy — not just geography. GTM entry point: this is how MirrorMatch builds its user base before monetization.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>Individuals: FREE (this is the growth engine). Nonprofit organizations: $99-$499/mo for volunteer management and matching. Corporate volunteer programs: $5K-$25K/yr for employee engagement platforms. The Wishing Well: transaction fee on fulfilled wishes (2-5%). This is the trojan horse — free users build avatars that convert to paid features in every other category.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Time to build an avatar profile. Sharing personal data about skills and interests (locally stored, never cloud).<br><strong>Get:</strong> Volunteering that actually uses their gifts. Visible impact. Deep community connection. A sense of purpose. Seeds of a platform relationship that grows into other verticals.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- ICP 12: ENTERPRISE -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="icp12">
+  <div class="icp-num">ICP 12</div>
+  <h2>Enterprise — The Platform Play</h2>
+  <p class="icp-persona">Fortune 500 to SMB · $300B+ HR tech market · $50B+ wellness market · Active on Gartner, Forrester, SHRM, enterprise tech conferences</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pain">Pain Points</span>
+      <ul>
+        <li>Employee engagement is at historic lows — 60%+ are disengaged</li>
+        <li>DEI efforts produce metrics but not cultural change</li>
+        <li>Customer insight tools track behavior but miss emotion and intent</li>
+        <li>Data privacy regulations (GDPR, CCPA) create compliance nightmares</li>
+        <li>No single platform connects hiring, wellness, team dynamics, and customer understanding</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="card-label l-value">MirrorMatch Value Proposition</span>
+      <h3>"One hub. Every human insight. Zero data liability."</h3>
+      <p>The connector-hub model: MirrorMatch sits at the center, converting data from every connected tool into actionable human intelligence. Employee matching, team compatibility, customer empathy mapping, leadership development (CEO training through avatar simulation), and organizational culture measurement — all through one platform with zero-storage architecture that eliminates data liability. "Who is my buyer" identifies ideal customers. The business problem solver transforms customer database insights into action plans with performance-based pricing.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">Why They'll Pay</span>
+      <p>Enterprise licenses: $50K-$500K/yr. Implementation: $25K-$100K. The zero-storage architecture alone is worth the price — no GDPR/CCPA liability, no data breach risk, no compliance overhead. Performance-based pricing for measurable outcomes. If enterprise engagement improves 10%, the ROI on a $100K platform is $1M+ in reduced turnover and productivity gains. Present to big companies ONLY after the network is built.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Trade-Off</span>
+      <p><strong>Give up:</strong> Server-side data ownership (the enterprise doesn't get to hoard employee data — it lives on devices). Traditional HR metrics and evaluation frameworks. 6-12 month implementation for full integration.<br><strong>Get:</strong> Zero data liability. Human intelligence no other platform can deliver. A workforce that's matched, understood, and growing. Customer empathy at scale. Regulatory compliance by architecture.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- EXECUTIVE SUMMARY -->
+<!-- ============================================================ -->
+<div class="divider"></div>
+<section class="icp wrap" id="exec">
+  <div class="icp-num">Executive Summary</div>
+  <h2>The Strategic Thesis</h2>
+
+  <div class="highlight">
+    <h4>Why MirrorMatch Wins Across Every Vertical</h4>
+    <p>Every ICP shares one fundamental pain: <strong>people are invisible.</strong> The nonverbal child is invisible. The foster kid is invisible. The formerly incarcerated person is invisible. The college student is invisible to the ATS. The employee is invisible to leadership. The grieving spouse is invisible to a world that moved on. MirrorMatch makes people visible — through avatars that carry their whole truth, stripped of bias, mask, and limitation. The zero-storage architecture turns the biggest risk (privacy) into the biggest moat. Nobody else can promise "your data never leaves your hands" at this scale.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <span class="card-label l-pay">GTM Sequencing</span>
+      <h3>The Domino Strategy</h3>
+      <p><strong>Phase 1 (Months 1-6):</strong> Launch as volunteer platform (free) + UTC/Covenant career matching pilots. Build avatar user base. Prove the matching engine.<br><br><strong>Phase 2 (Months 6-12):</strong> Therapy/self-improvement vertical. Monetize through practitioner subscriptions. Dr. Leaf partnership and neuroscience researcher network.<br><br><strong>Phase 3 (Months 12-18):</strong> Foster care and reentry — government contracts and nonprofit partnerships. Performance-based pricing eliminates risk for buyers.<br><br><strong>Phase 4 (Months 18-24):</strong> Enterprise. Present to big companies WITH the network already built. They can't steal it because the value IS the network + the LLM trained on the best research.<br><br><strong>Phase 5 (Year 2+):</strong> Legacy avatars, Disney partnership, physical toys, global expansion. The platform IS the network.</p>
+    </div>
+    <div class="card">
+      <span class="card-label l-trade">The Universal Trade-Off</span>
+      <h3>What Every User Gives Up vs. Gets</h3>
+      <p><strong>Every user gives up:</strong><br>• Hiding. The platform requires authenticity — masks are visible.<br>• Instant gratification. Avatar building takes 2-4 weeks of real investment.<br>• Control of narrative. The system reveals truth, not performance.<br>• Comfort with the status quo.<br><br><strong>Every user gets:</strong><br>• Being truly seen — maybe for the first time.<br>• Connections based on who they actually are.<br>• Growth that's measurable, visible, and rewarded.<br>• A digital self that carries their truth into every room, every relationship, every opportunity — and even beyond their lifetime.<br><br><strong>The real trade-off is vulnerability for visibility.</strong> And every segment listed above is starving for exactly that.</p>
+    </div>
+  </div>
+
+  <div class="highlight" style="border-left-color:var(--gold)">
+    <h4 style="color:var(--gold)">Revenue Projection Framework</h4>
+    <p><strong>Year 1:</strong> $250K-$500K (pilot contracts + early practitioner subscriptions + university licenses)<br><strong>Year 2:</strong> $2M-$5M (government contracts + enterprise early adopters + consumer growth)<br><strong>Year 3:</strong> $10M-$25M (enterprise scale + legacy product + token economy maturation)<br><strong>Year 5:</strong> $50M-$100M+ (platform network effects + international expansion + Disney/entertainment partnerships)<br><br>The platform's value compounds: every new user makes the matching better, every new connector app makes the avatar richer, every new vertical makes the network more defensible. This is not a product. It's a protocol for human understanding.</p>
+  </div>
+</section>
+
+<div class="conf" style="margin-top:48px">⬤ CONFIDENTIAL — SENSORY BRIDGES, INC. — DO NOT DISTRIBUTE ⬤</div>
+
+<footer class="footer">
+  <p>MirrorMatch ICP Deep Dive &amp; Strategic Analysis — March 27, 2026</p>
+  <p style="margin-top:6px">Sensory Bridges, Inc. · Chattanooga, TN · Megan, Founder &amp; CEO</p>
+  <p style="margin-top:6px">General Wellness — Not a medical device. Not intended to diagnose, treat, cure, or prevent any disease.</p>
+</footer>
+
+
+
+</body><div id="aiFabShadowRoot" data-fab-type="react" style="opacity: 1;"><template shadowrootmode="open"><div id="fab-react-root"><div class="fab-root"><div class="acrobat-button-container " style="bottom: 36px;"><div class="acrobat-button " role="button" aria-label="Get summaries and key insights using AI Assistant"><button class="close-btn  "><svg class="close-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="mask0_8552_7892" maskUnits="userSpaceOnUse" x="0" y="0" width="14" height="14" style="mask-type: alpha;"><path d="M7.82482 7.00034L10.6374 4.18778C10.7893 4.03592 10.7893 3.78969 10.6374 3.63783L10.3625 3.36292C10.2106 3.21106 9.96446 3.21106 9.81255 3.36292L6.99995 6.17548L4.18734 3.36292C4.03543 3.21106 3.78933 3.21106 3.63743 3.36292L3.36247 3.63783C3.21056 3.78969 3.21056 4.03592 3.36247 4.18778L6.17507 7.00034L3.36247 9.81295C3.21056 9.96481 3.21056 10.2111 3.36247 10.3629L3.63743 10.6378C3.78933 10.7897 4.03543 10.7897 4.18734 10.6378L6.99995 7.82526L9.81255 10.6378C9.96446 10.7897 10.2106 10.7897 10.3625 10.6378L10.6374 10.3629C10.7893 10.2111 10.7893 9.96481 10.6374 9.81295L7.82482 7.00034Z" fill="#222222"></path></mask><g mask="url(#mask0_8552_7892)"><rect width="14" height="14"></rect></g></svg><svg class="burger-icon" width="21" height="17" viewBox="0 0 21 17" fill="none" xmlns="http://www.w3.org/2000/svg"><mask id="mask0_12188_28876" maskUnits="userSpaceOnUse" x="3" y="3" width="15" height="14" style="mask-type: alpha;"><path d="M15.1285 12.8008H6.37852C6.08867 12.8008 5.85352 13.0359 5.85352 13.3258C5.85352 13.6156 6.08867 13.8508 6.37852 13.8508H15.1285C15.4184 13.8508 15.6535 13.6156 15.6535 13.3258C15.6535 13.0359 15.4184 12.8008 15.1285 12.8008Z" fill="#292929"></path><path d="M6.37852 6.85078H15.1285C15.4184 6.85078 15.6535 6.61562 15.6535 6.32578C15.6535 6.03594 15.4184 5.80078 15.1285 5.80078H6.37852C6.08867 5.80078 5.85352 6.03594 5.85352 6.32578C5.85352 6.61562 6.08867 6.85078 6.37852 6.85078Z" fill="#292929"></path><path d="M15.1285 9.30078H6.37852C6.08867 9.30078 5.85352 9.53594 5.85352 9.82578C5.85352 10.1156 6.08867 10.3508 6.37852 10.3508H15.1285C15.4184 10.3508 15.6535 10.1156 15.6535 9.82578C15.6535 9.53594 15.4184 9.30078 15.1285 9.30078Z" fill="#292929"></path></mask><g mask="url(#mask0_12188_28876)"><rect x="3.75391" y="3" width="14" height="14" fill="#464646"></rect></g></svg></button><div class="icon-container" role="button" tabindex="0" aria-label="Open AI Assistant"><svg id="ImportedIcons" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" class="fab-svg-icon"><path d="m6.21661,16.39534c-1.35034,2.23499-2.67933,3.64758-3.45616,3.64758-.12795.00539-.25276-.04056-.34667-.12762-.14818-.12483-.21629-.32065-.17758-.5105.14764-.80079,1.68628-1.95576,3.98041-3.00946Zm6.49075-3.19656c-.57993.12528-1.1792.27056-1.78689.43544-.4366.11893-.87951.24862-1.32255.38729.23541-.4949.4515-.98554.6398-1.452.24831-.6159.48156-1.232.69564-1.83456.18831.30354.38304.59839.58195.88207.39375.56092.81787,1.09736,1.19205,1.58176Zm-2.99822-10.63684c.08814-.18001.26644-.29855.46653-.31016.51149,0,.62276.63358.62276,1.1638-.06787,1.25011-.29293,2.48669-.66988,3.68055-.85816-2.33642-.73831-3.97319-.41942-4.53419h.00001Zm9.60883,12.20974c-.13359.4402-.56725.71808-1.023.6555-.15594-.00061-.3112-.02054-.46224-.05933-1.07834-.28263-2.07953-.80363-2.92976-1.5246.71719-.11267,1.44198-.17001,2.16797-.17149.48402-.00813.96771.03017,1.44442.11438.43447.09244.92449.33873.80261.98554Zm1.45515-1.0537c-1.01837-.83309-2.33117-1.21735-3.63802-1.06487-.98482.00983-1.96732.09739-2.93836.26187-.62354-.62512-1.19003-1.30467-1.69272-2.03054-.38314-.54455-.73672-1.10931-1.05923-1.69182.54287-1.57384.85986-3.2167.94151-4.87953,0-1.49369-.57564-3.09087-2.19132-3.09087-.56296.01952-1.07528.33036-1.35261.82066-.68906,1.2165-.41298,3.72002.68705,6.26756-.38306,1.17041-.80046,2.31007-1.31196,3.57265-.43687,1.08123-.93191,2.13803-1.48293,3.16579-1.64775.68213-5.15115,2.33642-5.48494,4.16456-.10306.53569.0783,1.08658.47942,1.45629.39145.35044.90217.53779,1.42737.5236,2.10998,0,4.21366-3.003,5.63044-5.58789.80461-.2816,1.62641-.53671,2.44391-.759.8967-.24407,1.76345-.44427,2.58082-.594,1.39014,1.39224,3.25004,2.21523,5.21531,2.30773,1.36751,0,1.87887-.60942,2.06516-1.122.20733-.5893.08589-1.24438-.3189-1.72019Z" fill="var(--iconRed, #d31510)" fill-rule="evenodd"></path></svg></div></div><div class="draggable-handle "><svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4.60039 13.0699C5.26313 13.0699 5.80039 12.5327 5.80039 11.8699C5.80039 11.2072 5.26313 10.6699 4.60039 10.6699C3.93765 10.6699 3.40039 11.2072 3.40039 11.8699C3.40039 12.5327 3.93765 13.0699 4.60039 13.0699Z" fill="#292929"></path><path d="M4.60039 8.27109C5.26313 8.27109 5.80039 7.73384 5.80039 7.07109C5.80039 6.40835 5.26313 5.87109 4.60039 5.87109C3.93765 5.87109 3.40039 6.40835 3.40039 7.07109C3.40039 7.73384 3.93765 8.27109 4.60039 8.27109Z" fill="#292929"></path><path d="M4.60039 3.47031C5.26313 3.47031 5.80039 2.93305 5.80039 2.27031C5.80039 1.60757 5.26313 1.07031 4.60039 1.07031C3.93765 1.07031 3.40039 1.60757 3.40039 2.27031C3.40039 2.93305 3.93765 3.47031 4.60039 3.47031Z" fill="#292929"></path><path d="M9.4002 13.0699C10.0629 13.0699 10.6002 12.5327 10.6002 11.8699C10.6002 11.2072 10.0629 10.6699 9.4002 10.6699C8.73745 10.6699 8.2002 11.2072 8.2002 11.8699C8.2002 12.5327 8.73745 13.0699 9.4002 13.0699Z" fill="#292929"></path><path d="M9.4002 8.27109C10.0629 8.27109 10.6002 7.73384 10.6002 7.07109C10.6002 6.40835 10.0629 5.87109 9.4002 5.87109C8.73745 5.87109 8.2002 6.40835 8.2002 7.07109C8.2002 7.73384 8.73745 8.27109 9.4002 8.27109Z" fill="#292929"></path><path d="M9.4002 3.47031C10.0629 3.47031 10.6002 2.93305 10.6002 2.27031C10.6002 1.60757 10.0629 1.07031 9.4002 1.07031C8.73745 1.07031 8.2002 1.60757 8.2002 2.27031C8.2002 2.93305 8.73745 3.47031 9.4002 3.47031Z" fill="#292929"></path></svg></div></div></div></div><style>
+    .acrobat-button-container {
+        position: fixed;
+        right: 0;
+        bottom: 36px;
+        z-index: 2147483646;
+        visibility: visible !important;
+        pointer-events: all;
+        opacity: 1;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    @media print {
+        .acrobat-button-container {
+            display: none !important;
+        }
+    }
+
+    .acrobat-button {
+        position: relative;
+        background: white;
+        display: flex;
+        align-items: center;
+        pointer-events: all;
+        touch-action: none;
+        box-shadow: 0px 2px 8px 0px #00000029;
+        height: 34px;
+        width: 34px;
+        border: 1px solid transparent;
+        background-clip: padding-box, border-box;
+        background-origin: border-box;
+        background-image: linear-gradient(white, white),
+                        linear-gradient(95.85deg, #D73220 0%, #D92361 33%, #7155FA 100%);
+        border-radius: 18px;
+        justify-content: right;
+        margin-right: var(--fab-margin-right, 28px);
+        overflow: hidden;
+    }
+
+    .acrobat-button-container-transparent {
+        opacity: 0.4 !important;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .acrobat-button-container-transparent:hover,
+    .acrobat-button-container-transparent:focus,
+    .acrobat-button-container-transparent:active {
+        opacity: 1;
+    }
+
+    .acrobat-button > svg {
+        flex-shrink: 0;
+        margin: 4px 5px 5px 5px;
+        width: 22px;
+        height: 22px;
+        pointer-events: none;
+        fill: #b40000;
+    }
+    .acrobat-button:has(.close-btn.open),
+    .expand-acrobat-button {
+        width: 64px;
+    }
+
+    .disabled {
+        background: #B1B1B1;
+    }
+
+    .tooltip-text {
+        width: 160px;
+        visibility: hidden;
+        opacity: 0;
+        background-color: #FFFFFF;
+        color: #292929;
+        border-radius: 7px;
+        padding: 4px 1px 5px 9px;
+        position: absolute;
+        z-index: 1;
+        right: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-right: 10px;
+        transition: opacity 0.3s, visibility 0s linear 2s;
+        font-size: 12px;
+        line-height: 15px;
+        font-family: 'adobe-clean', Adobe Clean, sans-serif;
+        filter: drop-shadow(0px 1px 6px rgba(0, 0, 0, 0.12));
+    }
+
+    .tooltip-text::after {
+       content: '';
+       position: absolute;
+       top: 50%;
+       left: 100%;
+       transform: translateY(-50%);
+       border-width: 6px;
+       border-style: solid;
+       border-color: transparent transparent transparent #fff;
+    }
+
+    .show-tooltip {
+        visibility: visible;
+        opacity: 1;
+        line-height: 1.5;
+        font-family: 'adobe-clean', Adobe Clean, sans-serif;
+        transition: opacity 0.3s;
+        transition-delay: 500ms;
+    }
+
+    .close-btn {
+        position: relative;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .close-btn svg {
+        fill: #464646;
+    }
+
+    .close-btn.showCloseButton {
+        opacity: 1;
+        display: flex;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 2px;
+    }
+
+    .fab-view-settings-dialog {
+        display: none;
+        position: absolute;
+        bottom: 40px;
+        z-index: 1;
+    }
+
+    .close-btn:hover {
+        background: #E6E6E6;
+        border-radius: 50%; /* Keep original circular hover */
+        cursor: pointer;
+    }
+
+    .fab-view-settings-dialog.showDialog {
+        display: block;
+    }
+    .close-btn .burger-icon {
+        display: inline;
+        margin-bottom: 2px;
+    }
+    .close-btn .close-icon {
+        display: none;
+    }
+    .close-btn.open .burger-icon {
+        display: none;
+    }
+    .close-btn.open .close-icon {
+        display: inline;
+    }
+    .tooltip-text .tooltip-text-content {
+        font-weight: bold;
+    }
+    .tooltip-text .tooltip-sub-text-text {
+        font-style: italic;
+        font-size: 11px;
+    }
+
+    /* Icon container styles - replaces iframe */
+    .icon-container {
+        width: 33px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        pointer-events: all;
+        flex-shrink: 0;
+        background: transparent;
+        border: none;
+    }
+
+    .icon-container:active {
+        cursor: grabbing;
+    }
+
+    .fab-svg-icon {
+        width: 22px;
+        height: 22px;
+        padding: 5px 5px 5px 6px;
+        pointer-events: none;
+        fill: #b40000;
+    }
+
+    .draggable-handle {
+        display: none;
+        position: absolute;
+        right: var(--drag-handle-right, 12px);
+        cursor: grab;
+    }
+    .draggable-handle-visible {
+        display: flex;
+    }
+
+    /* Font face declarations - for proper font loading in Shadow DOM */
+    @font-face {
+        font-family: 'adobe-clean';
+        font-weight: 400;
+        src: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/css/fonts/AdobeClean-Regular.otf') format('opentype');
+    }
+    @font-face {
+        font-family: 'adobe-clean';
+        font-weight: 700;
+        src: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/css/fonts/AdobeClean-Bold.otf') format('opentype');
+    }
+    @font-face {
+        font-family: 'AdobeClean-Regular';
+        src: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/css/fonts/AdobeClean-Regular.otf') format('opentype');
+    }
+    @font-face {
+        font-family: 'AdobeClean-Bold';
+        src: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/css/fonts/AdobeClean-Bold.otf') format('opentype');
+    }
+    body {
+        font-family: 'AdobeClean-Regular', adobe-clean, "Adobe Clean", sans-serif;
+    }
+
+    .dialog-container {
+        width: 166px;
+        background-color: #ffffff;
+        border-radius: 4px;
+        border: 1px solid #B1B1B1;
+        box-shadow: 0px 1px 4px 0px #00000026;
+        z-index: 1000;
+        padding: 4px;
+        position: relative;
+        margin: 4px 0px;
+    }
+
+    .menu {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .menu .menu_item {
+        cursor: pointer;
+        font-family: 'AdobeClean-Regular', adobe-clean, "Adobe Clean", sans-serif;
+        align-content: center;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 18.2px;
+        text-align: left;
+        color: #222222;
+        padding: 0px 12px;
+        height: 32px;
+        width: 140px;
+    }
+
+    .menu .menu_item:hover {
+        background-color: #eaeaea;
+    }
+
+    .preferences {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 18.2px;
+        text-align: left;
+        color: #464646;
+    }
+
+    .divider {
+        border-top: 1px solid #E6E6E6;
+    }
+
+    /* React-specific wrappers - minimal */
+    .fab-root {
+        font-family: 'adobe-clean', Adobe Clean, sans-serif;
+    }
+
+    button.close-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10; /* Ensure clickable above all other elements */
+        pointer-events: auto;
+    }
+
+    /* FAB Action Pills - From Figma Design */
+    .fab-pills-container {
+        position: absolute;
+        bottom: 42px; /* FAB height (34px) + gap (8px) = 42px */
+        right: var(--fab-margin-right, 28px);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-end;
+        width: 142px;
+        z-index: 1;
+    }
+
+    .fab-pills-container.pills-below {
+        bottom: auto;
+        top: 42px; /* Same gap when positioned below */
+    }
+
+    /* Extend hover area using ::after pseudo-element - doesn't affect visual layout */
+    .fab-pills-container::after {
+        content: '';
+        position: absolute;
+        top: 100%; /* Start right after the pills content */
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: transparent;
+        pointer-events: auto;
+    }
+
+    .fab-pills-container.pills-below::after {
+        top: auto;
+        bottom: 100%; /* Start right before the pills when positioned below */
+    }
+
+    /* FTE Header - First Time Experience (56px with close button) */
+    .fab-fte-header {
+        position: relative;
+        width: 142px;
+        min-height: 56px;
+        background: #FFFFFF;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.08), 0px 2px 6px 0px rgba(0, 0, 0, 0.04), 0px 0px 2px 0px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .fab-fte-background {
+        position: absolute;
+        left: -13px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 183.33px;
+        height: 126.82px;
+        background: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/images/fab-header-background.svg') no-repeat center;
+        background-size: cover;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .fab-fte-close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        z-index: 2;
+        color: #222222;
+        padding: 0;
+    }
+
+    .fab-fte-close:hover {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 12px;
+    }
+
+    .fab-fte-close svg {
+        width: 8px;
+        height: 8px;
+    }
+
+    .fab-fte-text {
+        position: relative;
+        width: 102px;
+        font-family: 'AdobeClean-Bold', adobe-clean, sans-serif;
+        font-weight: 400; /* Use Bold font file directly, not synthetic bold */
+        font-size: 12px;
+        line-height: 16px;
+        color: #222222; /* Figma spec color */
+        z-index: 1;
+        white-space: normal;
+        word-wrap: break-word;
+        margin-left: 16px;
+        margin-right: auto;
+        box-sizing: border-box;
+        -webkit-font-smoothing: subpixel-antialiased; /* Better font rendering */
+        -moz-osx-font-smoothing: auto;
+    }
+
+    /* Hover Header - Normal state (24px without close button) */
+    .fab-hover-header {
+        position: relative;
+        width: 142px;
+        min-height: 24px;
+        background: #FFFFFF; /* White background to show the colorful SVG and text */
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.08), 0px 2px 6px 0px rgba(0, 0, 0, 0.04), 0px 0px 2px 0px rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .fab-hover-background {
+        position: absolute;
+        left: -27px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 212.63px;
+        height: 147.09px;
+        background: url('chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/browser/images/fab-header-background.svg') no-repeat center;
+        background-size: cover;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .fab-hover-text {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'AdobeClean-Bold', adobe-clean, sans-serif;
+        font-weight: 400; /* Use Bold font file directly, not synthetic bold */
+        font-size: 12px;
+        line-height: 15px;
+        color: #222222; /* Figma spec color */
+        z-index: 1;
+        white-space: normal;
+        padding: 4px 9px;
+        box-sizing: border-box;
+        -webkit-font-smoothing: subpixel-antialiased; /* Better font rendering */
+        -moz-osx-font-smoothing: auto;
+    }
+
+    /* Individual Pill Buttons */
+    .fab-pill-button {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0;
+        width: 142px;
+        min-height: 24px; /* Min height, allows growth with content */
+        background: #FFFFFF;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0px 4px 12px 0px rgba(0, 0, 0, 0.08), 0px 2px 6px 0px rgba(0, 0, 0, 0.04), 0px 0px 2px 0px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        padding: 0;
+        transition: background 0.2s ease;
+        overflow: visible;
+    }
+
+    .fab-pill-button:hover {
+        background: #D5D5D5;
+    }
+
+    .fab-pill-button:hover .fab-pill-label,
+    .fab-pill-button:hover .fab-pill-icon {
+        color: #000000; /* Hover state color from Figma Alias/content/neutral/hover */
+    }
+
+    .fab-pill-button:active {
+        background: #F4F4F4;
+    }
+
+    .fab-pill-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 7px 4px 10px; /* Exact Figma specs: top right bottom left */
+        flex-shrink: 0;
+        box-sizing: border-box;
+    }
+
+    .fab-pill-icon img {
+        width: 16px;
+        height: 16px;
+        display: block;
+        flex-shrink: 0;
+        /* SVG icons with currentColor fill will inherit color from parent */
+        filter: brightness(0) saturate(100%) invert(13%) sepia(0%) saturate(0%) hue-rotate(196deg) brightness(97%) contrast(97%); /* #222222 */
+    }
+
+    .fab-pill-button:hover .fab-pill-icon img {
+        filter: brightness(0) saturate(100%); /* #000000 on hover */
+    }
+
+    .fab-pill-label {
+        display: flex;
+        align-items: center;
+        font-family: 'AdobeClean-Bold', adobe-clean, sans-serif;
+        font-weight: 400; /* Use Bold font file directly, not synthetic bold */
+        font-size: 12px;
+        line-height: 15px; /* 1.252 * 12px = 15.024px */
+        color: #222222; /* Default text color from Figma Alias/content/neutral/default */
+        padding: 4px 9px 5px 0; /* Reduced right padding to prevent wrapping */
+        text-align: left;
+        white-space: normal; /* Allow text wrapping for multi-line content */
+        box-sizing: border-box;
+        flex: 1;
+        overflow: visible;
+        -webkit-font-smoothing: subpixel-antialiased; /* Better font rendering */
+        -moz-osx-font-smoothing: auto;
+    }
+</style></template></div></html>
